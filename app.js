@@ -188,9 +188,13 @@ const septObs = new IntersectionObserver(entries => {
 }, { root: track, threshold: .6 });
 septImgs.forEach(img => septObs.observe(img));
 
-document.querySelector('.carousel__prev').addEventListener('click', () => { septIr(septI - 1); septReiniciar(); });
-document.querySelector('.carousel__next').addEventListener('click', () => { septIr(septI + 1); septReiniciar(); });
+document.querySelector('#septCarousel .carousel__prev').addEventListener('click', () => { septIr(septI - 1); septReiniciar(); });
+document.querySelector('#septCarousel .carousel__next').addEventListener('click', () => { septIr(septI + 1); septReiniciar(); });
 septBtns.forEach(b => b.addEventListener('click', () => { septIr(+b.dataset.go); septReiniciar(); }));
 track.addEventListener('pointerdown', septReiniciar);
 septMarcar(0);
 septReiniciar();
+
+// Flechas del carrusel de portada
+document.querySelector('.hero__prev').addEventListener('click', () => { mostrar((slide - 1 + slides.length) % slides.length); reiniciar(); });
+document.querySelector('.hero__next').addEventListener('click', () => { mostrar((slide + 1) % slides.length); reiniciar(); });
