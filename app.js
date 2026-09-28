@@ -103,14 +103,17 @@ lb.addEventListener('touchend', e => {
   x0 = null;
 });
 
-// Carrusel de portada: cambia de foto cada 6 segundos
-const slides = [...document.querySelectorAll('#heroSlides img')];
+// Carrusel de portada: primero el video collage (avanza al terminar),
+// después las fotos, que cambian cada 6 segundos
+const slides = [...document.querySelectorAll('#heroSlides > img, #heroSlides > video')];
+const heroVideo = document.getElementById('heroVideo');
+const heroSound = document.getElementById('heroSound');
 const dots = document.querySelector('.hero__dots');
 let slide = 0, timer;
 slides.forEach((img, i) => {
   const b = document.createElement('button');
   b.type = 'button';
-  b.setAttribute('aria-label', `Foto ${i + 1} de ${slides.length}`);
+  b.setAttribute('aria-label', `Diapositiva ${i + 1} de ${slides.length}`);
   b.addEventListener('click', () => { mostrar(i); reiniciar(); });
   dots.append(b);
 });
@@ -120,11 +123,33 @@ function mostrar(i) {
   [...dots.children].forEach((d, j) => d.classList.toggle('is-on', j === i));
   // Precarga la siguiente para que el cambio sea instantáneo
   slides[(i + 1) % slides.length].loading = 'eager';
+  const esVideo = slides[i] === heroVideo;
+  heroSound.hidden = !esVideo;
+  if (esVideo) {
+    heroVideo.currentTime = 0;
+    heroVideo.play().catch(() => {});
+  } else {
+    heroVideo.pause();
+  }
 }
 function reiniciar() {
-  clearInterval(timer);
-  timer = setInterval(() => { if (!document.hidden) mostrar((slide + 1) % slides.length); }, 6000);
+  clearTimeout(timer);
+  // El video avanza solo cuando termina (evento 'ended')
+  if (slides[slide] === heroVideo) return;
+  timer = setTimeout(function avanzar() {
+    if (document.hidden) { timer = setTimeout(avanzar, 6000); return; }
+    mostrar((slide + 1) % slides.length);
+    reiniciar();
+  }, 6000);
 }
+heroVideo.addEventListener('ended', () => { mostrar((slide + 1) % slides.length); reiniciar(); });
+// Los navegadores solo permiten reproducir video automático sin sonido
+heroSound.addEventListener('click', () => {
+  heroVideo.muted = !heroVideo.muted;
+  heroSound.textContent = heroVideo.muted ? '🔇 Activar sonido' : '🔊 Silenciar';
+  heroSound.setAttribute('aria-pressed', String(!heroVideo.muted));
+  if (!heroVideo.muted) heroVideo.play().catch(() => {});
+});
 mostrar(0);
 reiniciar();
 
